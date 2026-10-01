@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A Última Memória de Belly — um jogo narrativo sobre memória, luto e esquecimento.">
+    <title>A Última Memória de Belly</title>
+
+    <!-- Fontes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Lora:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ============================================
+         EFEITOS DE FUNDO GLOBAIS
+         ============================================ -->
+    <div id="grain-overlay"></div>
+    <div id="vignette-overlay"></div>
+    <div id="dust-container"></div>
+
+
+    <!-- ============================================
+         TELA 1 — CARREGAMENTO
+         ============================================ -->
+    <section id="loading-screen" class="screen active">
+        <div class="loading-content">
+            <h1 class="loading-title">A Última Memória de Belly</h1>
+            <p class="loading-phrase" id="loading-phrase">Relembrando...</p>
+            <div class="loading-bar-container">
+                <div class="loading-bar" id="loading-bar"></div>
+            </div>
+            <p class="loading-percent" id="loading-percent">0%</p>
+        </div>
+    </section>
+
+
+    <!-- ============================================
+         TELA 2 — MENU INICIAL
+         ============================================ -->
+    <section id="main-menu" class="screen">
+        <div class="menu-background">
+            <div class="house-silhouette"></div>
+        </div>
+
+        <div class="menu-content">
+            <h1 class="game-title">
+                <span class="title-line">A Última Memória</span>
+                <span class="title-line title-small">de</span>
+                <span class="title-line title-name">Belly</span>
+            </h1>
+
+            <p class="game-tagline">"Se você está lendo isso, eu já esqueci."</p>
+
+            <nav class="menu-buttons">
+                <button class="menu-btn" id="btn-new-game">Novo Jogo</button>
+                <button class="menu-btn" id="btn-continue" disabled>Continuar</button>
+                <button class="menu-btn" id="btn-options">Opções</button>
+                <button class="menu-btn" id="btn-credits">Créditos</button>
+            </nav>
+
+            <p class="menu-footer">Uma história sobre memória, luto e o que resta.</p>
+        </div>
+    </section>
+
+
+    <!-- ============================================
+         TELA 3 — ÁREA DO JOGO
+         ============================================ -->
+    <section id="game-container" class="screen">
+
+        <!-- Canvas do jogo -->
+        <div class="canvas-wrapper">
+            <canvas id="game-canvas" width="1280" height="720"></canvas>
+        </div>
+
+        <!-- HUD — Interface sobre o jogo -->
+        <div id="hud">
+
+            <!-- Canto superior esquerdo: Relógio -->
+            <div class="hud-clock" id="hud-clock">
+                <div class="clock-face">
+                    <span class="clock-time" id="clock-time">3:47</span>
+                    <span class="clock-label">AM</span>
+                </div>
+            </div>
+
+            <!-- Canto superior direito: Botões -->
+            <div class="hud-buttons">
+                <button class="hud-btn" id="btn-journal" title="Diário">📖</button>
+                <button class="hud-btn" id="btn-map" title="Mapa">🗺️</button>
+                <button class="hud-btn" id="btn-fullscreen" title="Tela Cheia">⛶</button>
+                <button class="hud-btn" id="btn-pause" title="Pausar">⏸</button>
+            </div>
+
+            <!-- Canto inferior esquerdo: Vela de Estabilidade -->
+            <div class="hud-candle" id="hud-candle">
+                <div class="candle-flame" id="candle-flame"></div>
+                <div class="candle-body"></div>
+                <span class="candle-label" id="candle-label">Estável</span>
+            </div>
+
+            <!-- Canto inferior direito: Indicador de Memória -->
+            <div class="hud-memory" id="hud-memory">
+                <span class="memory-icon">✦</span>
+                <span class="memory-count" id="memory-count">0</span>
+            </div>
+
+        </div>
+
+        <!-- Caixa de Diálogo -->
+        <div id="dialogue-box" class="dialogue-box hidden">
+            <div class="dialogue-speaker" id="dialogue-speaker">Belly</div>
+            <div class="dialogue-text" id="dialogue-text"></div>
+            <div class="dialogue-choices" id="dialogue-choices"></div>
+            <div class="dialogue-continue" id="dialogue-continue">▼</div>
+        </div>
+
+    </section>
+
+
+    <!-- ============================================
+         TELA 4 — MENU DE PAUSA
+         ============================================ -->
+    <section id="pause-menu" class="screen overlay-screen">
+        <div class="pause-content">
+            <h2 class="pause-title">Pausado</h2>
+            <nav class="pause-buttons">
+                <button class="menu-btn" id="btn-resume">Continuar</button>
+                <button class="menu-btn" id="btn-pause-journal">Diário</button>
+                <button class="menu-btn" id="btn-pause-map">Mapa</button>
+                <button class="menu-btn" id="btn-pause-options">Opções</button>
+                <button class="menu-btn" id="btn-pause-save">Salvar</button>
+                <button class="menu-btn danger" id="btn-quit">Sair para o Menu</button>
+            </nav>
+        </div>
+    </section>
+
+
+    <!-- ============================================
+         TELA 5 — DIÁRIO
+         ============================================ -->
+    <section id="journal" class="screen overlay-screen">
+        <div class="journal-content">
+            <header class="journal-header">
+                <h2 class="journal-title">Diário de Belly</h2>
+                <button class="close-btn" id="btn-close-journal">✕</button>
+            </header>
+
+            <div class="journal-body">
+                <aside class="journal-list" id="journal-list">
+                    <!-- Memórias coletadas aparecerão aqui -->
+                    <p class="journal-empty">Nenhuma memória registrada ainda.</p>
+                </aside>
+
+                <article class="journal-detail" id="journal-detail">
+                    <p class="journal-placeholder">Selecione uma memória para reler.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ============================================
+         TELA 6 — MAPA
+         ============================================ -->
+    <section id="map" class="screen overlay-screen">
+        <div class="map-content">
+            <header class="map-header">
+                <h2 class="map-title">A Casa de Cissa</h2>
+                <button class="close-btn" id="btn-close-map">✕</button>
+            </header>
+
+            <div class="map-body">
+                <div class="map-drawing" id="map-drawing">
+                    <!-- O mapa será desenhado aqui (SVG ou Canvas) -->
+                    <div class="map-room" data-room="entrada">Entrada</div>
+                    <div class="map-room" data-room="sala">Sala de Estar</div>
+                    <div class="map-room" data-room="cozinha">Cozinha</div>
+                    <div class="map-room" data-room="quarto-cissa">Quarto de Cissa</div>
+                    <div class="map-room locked" data-room="quarto-belly">Quarto de Belly</div>
+                    <div class="map-room" data-room="banheiro">Banheiro</div>
+                    <div class="map-room" data-room="sotao">Sótão</div>
+                    <div class="map-room" data-room="jardim">Jardim</div>
+                </div>
+
+                <div class="map-legend">
+                    <p><span class="legend-dot stable"></span> Estável</p>
+                    <p><span class="legend-dot unstable"></span> Instável</p>
+                    <p><span class="legend-dot forgotten"></span> Esquecido</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ============================================
+         TELA 7 — OPÇÕES
+         ============================================ -->
+    <section id="options" class="screen overlay-screen">
+        <div class="options-content">
+            <header class="options-header">
+                <h2 class="options-title">Opções</h2>
+                <button class="close-btn" id="btn-close-options">✕</button>
+            </header>
+
+            <div class="options-body">
+
+                <div class="option-group">
+                    <label for="opt-text-speed">Velocidade do Texto</label>
+                    <input type="range" id="opt-text-speed" min="1" max="10" value="5">
+                    <span class="option-value" id="opt-text-speed-value">5</span>
+                </div>
+
+                <div class="option-group">
+                    <label for="opt-sfx-volume">Volume dos Efeitos</label>
+                    <input type="range" id="opt-sfx-volume" min="0" max="100" value="70">
+                    <span class="option-value" id="opt-sfx-volume-value">70%</span>
+                </div>
+
+                <div class="option-group">
+                    <label for="opt-text-size">Tamanho do Texto</label>
+                    <input type="range" id="opt-text-size" min="80" max="150" value="100">
+                    <span class="option-value" id="opt-text-size-value">100%</span>
+                </div>
+
+                <div class="option-group toggle-group">
+                    <label for="opt-colorblind">Modo Daltônico</label>
+                    <input type="checkbox" id="opt-colorblind">
+                </div>
+
+                <div class="option-group toggle-group">
+                    <label for="opt-reduced-motion">Reduzir Animações</label>
+                    <input type="checkbox" id="opt-reduced-motion">
+                </div>
+
+                <div class="option-group toggle-group">
+                    <label for="opt-high-contrast">Alto Contraste</label>
+                    <input type="checkbox" id="opt-high-contrast">
+                </div>
+
+            </div>
+
+            <footer class="options-footer">
+                <button class="menu-btn" id="btn-reset-options">Restaurar Padrões</button>
+            </footer>
+        </div>
+    </section>
+
+
+    <!-- ============================================
+         TELA 8 — CRÉDITOS
+         ============================================ -->
+    <section id="credits" class="screen overlay-screen">
+        <div class="credits-content">
+            <header class="credits-header">
+                <h2 class="credits-title">Créditos</h2>
+                <button class="close-btn" id="btn-close-credits">✕</button>
+            </header>
+
+            <div class="credits-body">
+                <div class="credit-block">
+                    <h3>Criação e Direção</h3>
+                    <p>Seu Nome Aqui</p>
+                </div>
+
+                <div class="credit-block">
+                    <h3>Programação</h3>
+                    <p>Seu Nome Aqui</p>
+                </div>
+
+                <div class="credit-block">
+                    <h3>Arte e Design</h3>
+                    <p>Seu Nome Aqui</p>
+                </div>
+
+                <div class="credit-block">
+                    <h3>Trilha Sonora e Efeitos</h3>
+                    <p>Seu Nome Aqui</p>
+                </div>
+
+                <div class="credit-block">
+                    <h3>Agradecimentos Especiais</h3>
+                    <p>A todos que já esqueceram alguém.</p>
+                    <p>E a todos que temem ser esquecidos.</p>
+                </div>
+
+                <div class="credit-block final">
+                    <p class="credit-quote">
+                        "O amor não precisa de presença. Precisa de verdade."
+                    </p>
+                    <p class="credit-signature">— Cissa</p>
+                </div>
+            </div>
+
+            <footer class="credits-footer">
+                <p>© 2026 — A Última Memória de Belly</p>
+            </footer>
+        </div>
+    </section>
+
+
+    <!-- ============================================
+         TELA 9 — FINAL DO JOGO
+         ============================================ -->
+    <section id="ending-screen" class="screen">
+        <div class="ending-content">
+            <h2 class="ending-title" id="ending-title">A Aceitação</h2>
+
+            <div class="ending-text" id="ending-text">
+                <!-- Texto do final aparece aqui -->
+            </div>
+
+            <div class="ending-signature" id="ending-signature">
+                <!-- Assinatura de Belly -->
+            </div>
+
+            <div class="ending-buttons">
+                <button class="menu-btn" id="btn-ending-menu">Voltar ao Menu</button>
+                <button class="menu-btn" id="btn-ending-credits">Ver Créditos</button>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ============================================
+         TELA 10 — CONFIRMAÇÃO (genérica)
+         ============================================ -->
+    <section id="confirm-modal" class="screen overlay-screen hidden">
+        <div class="confirm-content">
+            <p class="confirm-message" id="confirm-message">Tem certeza?</p>
+            <div class="confirm-buttons">
+                <button class="menu-btn" id="btn-confirm-yes">Sim</button>
+                <button class="menu-btn" id="btn-confirm-no">Não</button>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ============================================
+         SCRIPTS
+         ============================================ -->
+    <script src="game.js"></script>
+</body>
+</html>
